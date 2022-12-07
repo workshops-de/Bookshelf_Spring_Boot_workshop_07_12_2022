@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>de.workshops</groupId>
 	<artifactId>bookshelf</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>Bookshelf</name>
 	<description>Sample project for Spring Boot Workshop</description>
 	<properties>
@@ -31,6 +31,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
