@@ -1,5 +1,6 @@
-package de.workshops.bookshelf.book;
+package de.workshops.bookshelf.config;
 
+import de.workshops.bookshelf.book.BookNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
