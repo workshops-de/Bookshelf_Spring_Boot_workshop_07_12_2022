@@ -1,37 +1,40 @@
 package de.workshops.bookshelf.book;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
 public class BookRepository {
 
-    private final ObjectMapper mapper;
-    private final ResourceLoader resourceLoader;
-
-    private List<Book> books;
-
-    @PostConstruct
-    void initBookList() throws IOException {
-        final var resource = resourceLoader.getResource("classpath:books.json");
-        books = mapper.readValue(resource.getInputStream(), new TypeReference<>() {});
-    }
+    private final JdbcTemplate jdbcTemplate;
 
     public List<Book> getBooks() {
-        return books;
+        return jdbcTemplate.query("SELECT * FROM book", new BeanPropertyRowMapper<>(Book.class));
     }
 
-    public Book createBook(Book book) {
-        books.add(book);
+    public void createBook(Book book) {
+        String sql = "INSERT INTO book (title, description, author, isbn) VALUES (?, ?, ?, ?)";
 
-        return book;
+        jdbcTemplate.update(
+                sql,
+                book.getTitle(),
+                book.getDescription(),
+                book.getAuthor(),
+                book.getIsbn()
+        );
+    }
+
+    public void deleteBook(Book book) {
+        String sql = "DELETE FROM book WHERE isbn = ?";
+
+        jdbcTemplate.update(
+                sql,
+                book.getIsbn()
+        );
     }
 }

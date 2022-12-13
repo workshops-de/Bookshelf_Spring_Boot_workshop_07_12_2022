@@ -1,3 +1,30 @@
 application:
   title: '@project.name@'
   version: '@project.version@'
+
+bookshelf:
+  some-number: 11
+  some-text: More information
+
+spring:
+  datasource:
+    url: jdbc:postgresql://tai.db.elephantsql.com:5432/tdygxryv # adapt URL to match your database instance, replacing SUBDOMAIN and DATABASE_NAME
+    driver-class-name: org.postgresql.Driver
+    username: tdygxryv # adapt username accordingly
+    # set PG_PASSWORD in your environment, e.g., by running "export PG_PASSWORD=..." in the command line
+    password: ${PG_PASSWORD}
+    hikari:
+      maximum-pool-size: 1 # disabling concurrent connections due to free plan limitations
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+    hibernate:
+      # Re-generating the DDL upon each application start to account for data model changes.
+      ddl-auto: create-drop
+    # By default, Spring Boot will try to populate the database from data.sql on startup,
+    # i.e. before JPA has the opportunity to generate DDL statements from classes annotated with @Entity.
+    defer-datasource-initialization: true
+  sql:
+    init:
+      # Since we're using a 'non-embedded' database here, we now need to set this to 'always'.
+      mode: always

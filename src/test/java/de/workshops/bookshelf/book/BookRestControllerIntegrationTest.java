@@ -37,6 +37,9 @@ class BookRestControllerIntegrationTest {
     @Autowired
     private BookRestController bookRestController;
 
+    @Autowired
+    private BookRepository bookRepository;
+
     @LocalServerPort
     private int port;
 
