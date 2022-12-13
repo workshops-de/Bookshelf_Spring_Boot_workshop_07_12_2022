@@ -111,5 +111,8 @@ class BookRestControllerIntegrationTest {
                 log().all().
                 statusCode(200).
                 body("author", equalTo("Eric Evans"));
+
+        // Remove book again to restore previous state
+        bookRepository.deleteBook(book);
     }
 }
