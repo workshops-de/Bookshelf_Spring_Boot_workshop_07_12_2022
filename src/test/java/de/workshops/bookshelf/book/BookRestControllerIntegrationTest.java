@@ -13,16 +13,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
+import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import javax.transaction.Transactional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -38,7 +45,7 @@ class BookRestControllerIntegrationTest {
     private BookRestController bookRestController;
 
     @Autowired
-    private BookRepository bookRepository;
+    private FilterChainProxy springSecurityFilterChain;
 
     @LocalServerPort
     private int port;
@@ -61,6 +68,7 @@ class BookRestControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void getAllBooks() throws Exception {
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.get("/book"))
                 .andDo(MockMvcResultHandlers.print())
@@ -76,8 +84,14 @@ class BookRestControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser
     void testWithRestAssuredMockMvc() {
-        RestAssuredMockMvc.standaloneSetup(bookRestController);
+        RestAssuredMockMvc.standaloneSetup(
+                MockMvcBuilders
+                        .standaloneSetup(bookRestController)
+                        .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))
+        );
+
         RestAssuredMockMvc.
                 given().
                 log().all().
@@ -90,8 +104,16 @@ class BookRestControllerIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @WithMockUser(roles = {"ADMIN"})
     void createBook() {
-        RestAssuredMockMvc.standaloneSetup(bookRestController);
+        RestAssuredMockMvc.standaloneSetup(
+                MockMvcBuilders
+                        .standaloneSetup(bookRestController)
+                        .apply(SecurityMockMvcConfigurers.springSecurity(springSecurityFilterChain))
+        );
+        // The following includes a CSRF token in the header for requests sent by REST Assured.
+        RestAssuredMockMvc.postProcessors(csrf().asHeader());
 
         Book book = new Book();
         book.setAuthor("Eric Evans");
@@ -111,8 +133,5 @@ class BookRestControllerIntegrationTest {
                 log().all().
                 statusCode(200).
                 body("author", equalTo("Eric Evans"));
-
-        // Remove book again to restore previous state
-        bookRepository.deleteBook(book);
     }
 }

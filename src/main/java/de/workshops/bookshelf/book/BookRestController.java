@@ -1,5 +1,7 @@
 package de.workshops.bookshelf.book;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +42,16 @@ public class BookRestController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public Book createBook(@RequestBody Book book) {
         return bookService.createBook(book);
+    }
+
+    @DeleteMapping("/{isbn}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> deleteBook(@PathVariable String isbn) throws BookNotFoundException {
+        bookService.deleteBook(bookService.getSingleBook(isbn));
+
+        return ResponseEntity.ok("OK");
     }
 }

@@ -2,22 +2,16 @@ package de.workshops.bookshelf.book;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@DataJpaTest(
-        includeFilters = @ComponentScan.Filter(
-                type = FilterType.ANNOTATION,
-                classes = Repository.class
-        )
-)
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class BookRepositoryTest {
 
     @Autowired
@@ -25,18 +19,45 @@ class BookRepositoryTest {
 
     @Test
     void createBook() {
+        Book book = buildAndSaveBook("123-4567890");
+
+        List<Book> books = bookRepository.findAll();
+
+        assertNotNull(books);
+        assertEquals(4, books.size());
+        assertEquals(book.getIsbn(), books.get(3).getIsbn());
+    }
+
+    @Test
+    void deleteBook() {
+        List<Book> books = bookRepository.findAll();
+        bookRepository.delete(books.get(2));
+        books = bookRepository.findAll();
+
+        assertNotNull(books);
+        assertEquals(2, books.size());
+    }
+
+    @Test
+    void findBookByIsbn() {
+        String isbn = "123-4567890";
+
+        Book book = buildAndSaveBook(isbn);
+        Book newBook = bookRepository.findByIsbn(isbn);
+
+        assertNotNull(newBook);
+        assertEquals(book.getTitle(), newBook.getTitle());
+    }
+
+    private Book buildAndSaveBook(String isbn) {
         Book book = Book.builder()
                 .title("Title")
                 .author("Author")
                 .description("Description")
                 .isbn("123-4567890")
+                .isbn(isbn)
                 .build();
-        bookRepository.createBook(book);
 
-        List<Book> books = bookRepository.getBooks();
-
-        assertNotNull(books);
-        assertEquals(4, books.size());
-        assertEquals(book.getIsbn(), books.get(3).getIsbn());
+        return bookRepository.save(book);
     }
 }
